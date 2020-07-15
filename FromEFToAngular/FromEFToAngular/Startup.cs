@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.ConstrainedExecution;
@@ -14,7 +15,28 @@ namespace FromEFToAngular
     {
         static void Main(string[] args)
         {
+            string sCurrentDir = Directory.GetCurrentDirectory();
             string srcFilePath = "";
+            string sfinalFilePath = "";
+
+            //read conf
+            string[] lines = File.ReadAllLines(Path.Combine(sCurrentDir, "conf.txt"));
+            foreach (string line in lines)
+            {
+                string key = line.Split("=")[0];
+                string value = line.Split("=")[1];
+
+                switch (key)
+                {
+                    case "edmx":
+                        srcFilePath = value;
+                        break;
+                    case "dest":
+                        sfinalFilePath = value;
+                        break;
+                }
+                    
+            }
 
             //TODO: check path and file extension
             if (string.IsNullOrEmpty(srcFilePath))
@@ -31,11 +53,9 @@ namespace FromEFToAngular
             List<XmlNode> nodes = new List<XmlNode>();
             RecursiveNodeSearch(xdoc, ref nodes);
 
-            string finalFilePath = "";
-
             foreach (XmlNode node in nodes)
             {
-                GenerateModelFile(node, finalFilePath);
+                GenerateModelFile(node, sfinalFilePath);
             }
         }
 
@@ -45,7 +65,7 @@ namespace FromEFToAngular
             {
                 foreach (XmlNode node in xDoc.ChildNodes)
                 {
-                    if (node.Name == "EntityType")
+                    if (node.Name == "EntityType" || node.Name == "ComplexType")
                         nodes.Add(node);
                     else
                         RecursiveNodeSearch(node, ref nodes);
@@ -69,13 +89,11 @@ namespace FromEFToAngular
                     line = "    public " + childNode.Attributes["Name"].Value + ": ";
                     switch (childNode.Attributes["Type"].Value)
                     {
-                        case "int":
-                        case "bigint":
-                        case "decimal":
-                        case "numeric":
+                        case "Int32":
+                        case "Decimal":
                             line += "number";
                             break;
-                        case "bit":
+                        case "Boolean":
                             line += "boolean";
                             break;
                         default:
@@ -96,7 +114,7 @@ namespace FromEFToAngular
             line = "}";
             lines.Add(line);
 
-            System.IO.File.WriteAllLines(@"" + finalFilepath + node.Attributes["Name"].Value + ".cs", lines);
+            System.IO.File.WriteAllLines(@"" + Path.Combine(finalFilepath, node.Attributes["Name"].Value + ".cs"), lines);
         }
     }
 }

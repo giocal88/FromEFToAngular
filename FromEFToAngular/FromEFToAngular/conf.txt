@@ -1,0 +1,2 @@
+﻿edmx=path_to_edmx_file
+dest=destination_folder

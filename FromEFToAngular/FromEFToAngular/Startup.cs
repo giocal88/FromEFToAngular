@@ -45,6 +45,13 @@ namespace FromEFToAngular
                 return;
             }
 
+            //eventually delete old files
+            string[] filePaths = Directory.GetFiles(sfinalFilePath);
+            foreach (string filePath in filePaths)
+                File.Delete(filePath);
+
+
+
             //Load xml
             XmlDocument xdoc = new XmlDocument();
             xdoc.Load(srcFilePath);
@@ -114,7 +121,7 @@ namespace FromEFToAngular
             line = "}";
             lines.Add(line);
 
-            System.IO.File.WriteAllLines(@"" + Path.Combine(finalFilepath, node.Attributes["Name"].Value + ".cs"), lines);
+            System.IO.File.WriteAllLines(@"" + Path.Combine(finalFilepath, node.Attributes["Name"].Value + ".ts"), lines);
         }
     }
 }

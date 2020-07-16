@@ -50,8 +50,6 @@ namespace FromEFToAngular
             foreach (string filePath in filePaths)
                 File.Delete(filePath);
 
-
-
             //Load xml
             XmlDocument xdoc = new XmlDocument();
             xdoc.Load(srcFilePath);
@@ -86,7 +84,7 @@ namespace FromEFToAngular
 
             //class
             string line = $"export class " + node.Attributes["Name"].Value + " {";
-            lines.Add(line);
+            lines.Add(line);            
 
             //object properties
             foreach (XmlNode childNode in node.ChildNodes)
@@ -96,8 +94,12 @@ namespace FromEFToAngular
                     line = "    public " + childNode.Attributes["Name"].Value + ": ";
                     switch (childNode.Attributes["Type"].Value)
                     {
+                        case "Int16":
                         case "Int32":
                         case "Decimal":
+                        case "Double":
+                        case "Single":
+                        case "long":
                             line += "number";
                             break;
                         case "Boolean":

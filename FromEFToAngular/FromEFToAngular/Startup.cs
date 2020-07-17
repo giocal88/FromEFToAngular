@@ -70,7 +70,8 @@ namespace FromEFToAngular
             {
                 foreach (XmlNode node in xDoc.ChildNodes)
                 {
-                    if (node.Name == "EntityType" || node.Name == "ComplexType")
+                    if (node.ParentNode != null && node.ParentNode.ParentNode != null && 
+                        node.ParentNode.ParentNode.Name == "edmx:ConceptualModels" && (node.Name == "EntityType" || node.Name == "ComplexType"))
                         nodes.Add(node);
                     else
                         RecursiveNodeSearch(node, ref nodes);

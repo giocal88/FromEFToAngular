@@ -19,31 +19,29 @@ namespace FromEFToAngular
             string srcFilePath = "";
             string sfinalFilePath = "";
 
-            //read conf
-            string[] lines = File.ReadAllLines(Path.Combine(sCurrentDir, "conf.txt"));
-            foreach (string line in lines)
-            {
-                string key = line.Split("=")[0];
-                string value = line.Split("=")[1];
-
-                switch (key)
-                {
-                    case "edmx":
-                        srcFilePath = value;
-                        break;
-                    case "dest":
-                        sfinalFilePath = value;
-                        break;
-                }
-                    
-            }
-
             try
             {
-                //eventually delete old files
-                string[] filePaths = Directory.GetFiles(sfinalFilePath);
-                foreach (string filePath in filePaths)
-                    File.Delete(filePath);
+                //read conf
+                string[] lines = File.ReadAllLines(Path.Combine(sCurrentDir, "conf.txt"));
+                foreach (string line in lines)
+                {
+                    string key = line.Split("=")[0];
+                    string value = line.Split("=")[1];
+
+                    switch (key)
+                    {
+                        case "edmx":
+                            srcFilePath = value;
+                            break;
+                        case "dest":
+                            sfinalFilePath = value;
+                            break;
+                    }
+                    
+                }
+
+                //old models cleaning
+                FileDeletingManagement(sfinalFilePath);
 
                 //Load xml
                 XmlDocument xdoc = new XmlDocument();
@@ -126,6 +124,33 @@ namespace FromEFToAngular
             lines.Add(line);
 
             System.IO.File.WriteAllLines(@"" + Path.Combine(finalFilepath, node.Attributes["Name"].Value + ".ts"), lines);
+        }
+
+        private static void FileDeletingManagement(string sfinalFilePath)
+        {
+            //eventually delete old files
+            string[] filePaths = Directory.GetFiles(sfinalFilePath);
+
+            if (filePaths.Length > 0)
+            {
+                Console.WriteLine("This files are about to be deleted:");
+                foreach (string filePath in filePaths)
+                {
+                    Console.WriteLine(filePath);
+                }
+
+                Console.WriteLine("Are you sure you want to delete this files? [y/N]");
+                string res = Console.ReadLine();
+
+                if (res.ToLower() == "y")
+                {
+                    foreach (string filePath in filePaths)
+                    {
+                        File.Delete(filePath);
+                    }
+                }
+            }
+
         }
     }
 }

@@ -38,29 +38,30 @@ namespace FromEFToAngular
                     
             }
 
-            //TODO: check path and file extension
-            if (string.IsNullOrEmpty(srcFilePath))
+            try
             {
-                Console.WriteLine("Error: edmx file not found.");
-                return;
+                //eventually delete old files
+                string[] filePaths = Directory.GetFiles(sfinalFilePath);
+                foreach (string filePath in filePaths)
+                    File.Delete(filePath);
+
+                //Load xml
+                XmlDocument xdoc = new XmlDocument();
+                xdoc.Load(srcFilePath);
+
+                //find entitytype nodes
+                List<XmlNode> nodes = new List<XmlNode>();
+                RecursiveNodeSearch(xdoc, ref nodes);
+
+                foreach (XmlNode node in nodes)
+                {
+                    GenerateModelFile(node, sfinalFilePath);
+                }
             }
-
-            //eventually delete old files
-            string[] filePaths = Directory.GetFiles(sfinalFilePath);
-            foreach (string filePath in filePaths)
-                File.Delete(filePath);
-
-            //Load xml
-            XmlDocument xdoc = new XmlDocument();
-            xdoc.Load(srcFilePath);
-
-            //find entitytype nodes
-            List<XmlNode> nodes = new List<XmlNode>();
-            RecursiveNodeSearch(xdoc, ref nodes);
-
-            foreach (XmlNode node in nodes)
+            catch (Exception ex)
             {
-                GenerateModelFile(node, sfinalFilePath);
+                Console.WriteLine(ex.Message);
+                return;
             }
         }
 

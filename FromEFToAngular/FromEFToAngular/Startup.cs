@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FromEFToAngular.Model;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -78,20 +79,29 @@ namespace FromEFToAngular
             }
         }
 
-        private static void GenerateModelFile(XmlNode node, string finalFilepath)
+        private static Entity GenerateModelFile(XmlNode node, string finalFilepath)
         { 
             List<string> lines = new List<string>();
+            Entity entity = new Entity();
+            List<EntityProperty> entityProperties = new List<EntityProperty>();
+
+            entity.Name = node.Attributes["Name"].Value;
 
             //class
-            string line = $"export class " + node.Attributes["Name"].Value + " {";
-            lines.Add(line);            
+            string line = $"export class " + entity.Name + " {";
+            lines.Add(line);
 
             //object properties
+            List<string> propertiesLines = new List<string>();
+            List<string> methodsLines = new List<string>();
             foreach (XmlNode childNode in node.ChildNodes)
             {
                 if (childNode.Name == "Property")
                 {
-                    line = "    public " + childNode.Attributes["Name"].Value + ": ";
+                    EntityProperty entityProperty = new EntityProperty();
+                    entityProperty.Nmae = childNode.Attributes["Name"].Value;
+
+                    line = "    public _" + entityProperty.Nmae + ": ";
                     switch (childNode.Attributes["Type"].Value)
                     {
                         case "Int16":
@@ -100,20 +110,45 @@ namespace FromEFToAngular
                         case "Double":
                         case "Single":
                         case "long":
-                            line += "number";
+                            entityProperty.Type = "number";
                             break;
                         case "Boolean":
-                            line += "boolean";
+                            entityProperty.Type  = "boolean";
                             break;
                         default:
-                            line += "string";
+                            entityProperty.Type = "string";
                             break;
                     }
 
+                    entityProperties.Add(entityProperty);
+
+                    line += entityProperty.Type;
                     line += ";";
-                    lines.Add(line);
+                    propertiesLines.Add(line);
+
+                    //getter
+                    line = "    get " + entityProperty.Nmae + "(): " + entityProperty.Type + " { return this._" + entityProperty.Nmae + "; }";
+                    methodsLines.Add(line);
+
+                    //setter
+                    line = "    set " + entityProperty.Nmae + "(" + entityProperty.Nmae + ": " + entityProperty.Type + ") { this._" + entityProperty.Nmae + " = " + entityProperty.Nmae + "; }";
+                    methodsLines.Add(line);
                 }
             }
+
+            entity.Properties = entityProperties;
+
+            lines.AddRange(propertiesLines);
+
+            //space line
+            line = Environment.NewLine;
+            lines.Add(line);
+
+            lines.AddRange(methodsLines);
+
+            //space line
+            line = Environment.NewLine;
+            lines.Add(line);
 
             //constructor
             line = "    constructor() {}";
@@ -123,7 +158,9 @@ namespace FromEFToAngular
             line = "}";
             lines.Add(line);
 
-            System.IO.File.WriteAllLines(@"" + Path.Combine(finalFilepath, node.Attributes["Name"].Value + ".ts"), lines);
+            File.WriteAllLines(@"" + Path.Combine(finalFilepath, node.Attributes["Name"].Value + ".ts"), lines);
+
+            return entity;
         }
 
         private static void FileDeletingManagement(string sfinalFilePath)
